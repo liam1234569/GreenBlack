@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Database v3.0 - Cloud Edition</title>
+    <title>Terminal Database v3.0 - Cloud</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,127 +15,101 @@
             <input type="text" id="username" placeholder="[Benutzername]">
             <input type="password" id="password" placeholder="[Passwort]">
             <button onclick="login()">[ EXECUTE LOGIN ]</button>
+            
             <button onclick="openRequestForm()" style="position: absolute; bottom: 10px; right: 10px; width: auto; font-size: 0.7em; background: #222; border-color: #555;">
-    [ ACCOUNT BEANTRAGEN ]
-</button>
+                [ ACCOUNT BEANTRAGEN ]
+            </button>
         </div>
 
         <div id="request-section" style="display:none;" class="terminal-block">
-    <h2>> ACCOUNT-ANTRAG</h2>
-    <p>Bitte fülle den Fragebogen für den Systemzugang aus:</p>
-    <input type="text" id="ans-name" placeholder="Dein Name / Alias">
-    <textarea id="ans-reason" placeholder="Warum benötigst du Zugriff?" style="width:100%; height:80px; background:black; color:#0f0; border:1px solid #0f0; font-family:monospace; padding:10px; margin-bottom:10px;"></textarea>
-    <button onclick="submitAccountRequest()">[ ANTRAG ABSCHICKEN ]</button>
-    <button onclick="closeRequestForm()" class="delete-btn">[ ABBRECHEN ]</button>
-</div>
+            <h2>> ACCOUNT-ANTRAG</h2>
+            <p>Bitte fülle den Fragebogen für den Systemzugang aus:</p>
+            <input type="text" id="ans-name" placeholder="Dein Name / Alias">
+            <textarea id="ans-reason" placeholder="Warum benötigst du Zugriff?" style="width:100%; height:80px; background:black; color:#0f0; border:1px solid #0f0; font-family:monospace; padding:10px; margin-bottom:10px;"></textarea>
+            <button onclick="submitAccountRequest()" style="background:#0f0; color:black; font-weight:bold;">[ ANTRAG ABSCHICKEN ]</button>
+            <button onclick="closeTooManyRequests()" class="delete-btn">[ ABBRECHEN ]</button>
+        </div>
 
-<div id="too-many-requests" style="display:none;" class="terminal-block">
-    <div style="text-align: center; padding: 40px 10px;">
-        <h2 style="color: #0f0; font-size: 2em; text-shadow: 0 0 10px #0f0; margin-bottom: 30px;">
-            Aktuell zu viele Anfragen
-        </h2>
-        <button onclick="closeTooManyRequests()" 
-                style="background: white; color: red; border: none; padding: 10px 30px; font-weight: bold; border-radius: 5px; cursor: pointer;">
-            Zurück
-        </button>
-    </div>
-</div>
-<div id="status-section" style="display:none;" class="terminal-block">
-    <h2>> SYSTEM-STATUS: PRÜFUNG</h2>
-    <div id="status-message" style="border: 1px dashed #0f0; padding: 20px; text-align: center;">
-        Warte auf Rückmeldung der Administration...
-    </div>
-    <br>
-    <button onclick="cancelWaiting()" class="delete-btn">[ VORGANG ABBRECHEN ]</button>
-</div>
+        <div id="too-many-requests" style="display:none;" class="terminal-block">
+            <div style="text-align: center; padding: 40px 10px;">
+                <h2 style="color: #0f0; font-size: 2em; text-shadow: 0 0 10px #0f0;">Aktuell zu viele Anfragen</h2>
+                <button onclick="closeTooManyRequests()" style="background: white; color: red; border: none; padding: 10px 30px; font-weight: bold; border-radius: 5px;">Zurück</button>
+            </div>
+        </div>
+
+        <div id="status-section" style="display:none;" class="terminal-block">
+            <h2>> STATUS-ZENTRALE</h2>
+            <div id="status-message" style="border: 1px dashed #0f0; padding: 20px; text-align: center;">Warte auf Verbindung...</div>
+            <button onclick="localStorage.removeItem('pendingRequestId'); location.reload();" class="delete-btn">[ ZURÜCK ]</button>
+        </div>
 
         <div id="main-section" style="display:none;">
             <h2 id="welcome-msg"></h2>
             
             <div class="terminal-block">
-                <h3>> VERZEICHNIS-PFAD WÄHLEN</h3>
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-                    <select id="current-folder" onchange="updateFolderDropdown(); renderLinks();" 
-                            style="background: black; color: #0f0; border: 1px solid #0f0; padding: 10px; flex-grow: 1; font-family: 'Courier New', monospace; outline: none;">
-                        <option value="">-- Verzeichnis wählen --</option>
-                    </select>
-                    
-                    <button id="admin-folder-control" onclick="deleteFolder()" 
-                            class="delete-btn" style="display:none; width: auto; margin: 0; padding: 10px; white-space: nowrap;">
-                        [ ORDNER LÖSCHEN ]
-                    </button>
+                <h3>> VERZEICHNIS</h3>
+                <div style="display: flex; gap: 10px;">
+                    <select id="current-folder" onchange="renderLinks()" style="background: black; color: #0f0; border: 1px solid #0f0; padding: 10px; flex-grow: 1;"></select>
+                    <button id="admin-folder-control" onclick="deleteFolder()" class="delete-btn" style="display:none; width: auto;">[ LÖSCHEN ]</button>
                 </div>
             </div>
 
-            <div id="link-form" class="terminal-block" style="display:none; border: 1px solid #0f0; padding: 15px; margin: 20px 0;">
-                <h3>> EINTRAG IN <span id="active-folder-name" style="text-decoration: underline;"></span> ERSTELLEN</h3>
-                <input type="text" id="link-name" placeholder="Name des Links">
-                <input type="text" id="link-url" placeholder="URL (https://...)">
-                <button onclick="addLink()">[ DATENSATZ SPEICHERN ]</button>
+            <div id="link-form" class="terminal-block" style="display:none;">
+                <h3>> NEUER EINTRAG</h3>
+                <input type="text" id="link-name" placeholder="Name">
+                <input type="text" id="link-url" placeholder="URL">
+                <button onclick="addLink()">[ SPEICHERN ]</button>
             </div>
 
             <div class="terminal-block">
-                <h3>> DATENBANK-OUTPUT</h3>
+                <h3>> DATENBANK</h3>
                 <ul id="link-list" style="list-style: none; padding: 0;"></ul>
             </div>
 
-            <div id="request-folder-section" class="terminal-block" style="border: 1px dashed #0f0; padding: 15px; margin-top: 30px;">
-                <h3>> VERZEICHNIS-ANFRAGE SENDEN</h3>
-                <input type="text" id="req-folder-name" placeholder="Gewünschter Ordnername">
-                <input type="text" id="req-folder-reason" placeholder="Grund / Zweck">
-                <button onclick="sendFolderRequest()">[ ANFRAGE ÜBERMITTELN ]</button>
+            <div class="terminal-block">
+                <h3>> ORDNER BEANTRAGEN</h3>
+                <input type="text" id="req-folder-name" placeholder="Name">
+                <input type="text" id="req-folder-reason" placeholder="Grund">
+                <button onclick="sendFolderRequest()">[ SENDEN ]</button>
             </div>
 
-            <button onclick="logout()" style="margin-top: 30px; background-color: #333; color: #aaa; width: 100%;">[ VERBINDUNG TRENNEN ]</button>
+            <button onclick="logout()" style="width: 100%; margin-top: 20px;">[ LOGOUT ]</button>
         </div>
 
-        <div id="admin-section" style="display:none; border-top: 3px double #0f0; margin-top: 40px; padding-top: 20px;">
-            <h2 style="color: #f00; border-color: #f00;">> ADMIN ROOT ACCESS</h2>
+        <div id="admin-section" style="display:none; border-top: 2px solid #f00; margin-top: 20px;">
+            <h2 style="color:red;">> ADMIN PANEL</h2>
             
-            <div class="terminal-block" style="border: 1px solid #f00; padding: 10px; margin-bottom: 20px; background: rgba(255,0,0,0.05);">
-                <h3 style="color: #f00;">> OFFENE VERZEICHNIS-ANFRAGEN</h3>
-                <div id="request-list"></div>
-            </div>
-            <div class="terminal-block" style="border-color: #00f;">
-    <h3 style="color: #00f;">> ACCOUNT-BEWERBUNGEN</h3>
-    <div id="account-request-list"></div>
-</div>
-
-            <div class="terminal-block" style="border: 1px solid #0f0; padding: 10px; margin-bottom: 20px;">
-                <h3>> CONTENT SAFETY CHECK</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="startAutoScan()" style="background: #f00; color: #fff; flex: 1; padding: 10px;">
-                        [ 1. AUTO-SCAN ]
-                    </button>
-                    <button onclick="startContentReview()" style="background: #a00; color: #fff; flex: 1; padding: 10px;">
-                        [ 2. SICHTUNG ]
-                    </button>
-                </div>
+            <div class="terminal-block" style="border-color:blue;">
+                <h3 style="color:blue;">> ACCOUNT-BEWERBUNGEN</h3>
+                <div id="account-request-list"></div>
             </div>
 
             <div class="terminal-block">
-                <h3>> USER-MANAGEMENT</h3>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="new-user" placeholder="Neuer User" style="margin-bottom:0;">
-                    <input type="text" id="new-pass" placeholder="Passwort" style="margin-bottom:0;">
-                    <button onclick="createUser()" style="width: auto; margin-bottom:0;">[ CREATE ]</button>
+                <h3 style="color:red;">> USER-RECHTE (Klick auf Name)</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="new-user" placeholder="User">
+                    <input type="text" id="new-pass" placeholder="Pass">
+                    <button onclick="createUser()">[ CREATE ]</button>
                 </div>
                 <div id="user-list"></div>
             </div>
+            
+            <div class="terminal-block">
+                <h3>> ORDNER-ANFRAGEN</h3>
+                <div id="request-list"></div>
+            </div>
         </div>
-
     </div>
 
-    <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center;">
-        <div id="modal-box" style="border:2px solid #0f0; background:#000; padding:30px; text-align:center; max-width:450px; box-shadow: 0 0 30px #0f0;">
-            <p id="modal-text" style="margin-bottom:25px; color: #0f0; font-size: 1.2em; font-family: 'Courier New', monospace;"></p>
+    <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999; justify-content:center; align-items:center;">
+        <div style="border:2px solid #0f0; background:#000; padding:20px; text-align:center;">
+            <p id="modal-text"></p>
             <div id="modal-buttons"></div>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>
