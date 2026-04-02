@@ -1,4 +1,4 @@
-// --- FIREBASE CONFIG ---
+// --- 1. FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyAZEMNBokUfK42NHX6otedfSdVA43zK8PI",
   authDomain: "terminal-db-45473.firebaseapp.com",
@@ -12,7 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// --- VARIABLEN ---
+// --- 2. VARIABLEN ---
 let users = [];
 let links = [];
 let folders = [];
@@ -20,8 +20,9 @@ let folderRequests = [];
 let currentUser = null;
 let myRequestId = localStorage.getItem('pendingRequestId') || null;
 const MAX_REQUESTS = 5;
+const forbiddenKeywords = ["porn", "xxx", "sex", "nude", "adult", "warez", "gamble"];
 
-// --- CLOUD SYNC ---
+// --- 3. CLOUD SYNC ---
 db.ref('/').on('value', (snapshot) => {
     const data = snapshot.val() || {};
     users = data.users || [{ name: "admin", pass: "1234", role: "admin" }];
@@ -44,7 +45,7 @@ function syncToCloud() {
     db.ref('/').update({ users, links, folders, folderRequests });
 }
 
-// --- AUTH ---
+// --- 4. AUTH & LOGIN ---
 function login() {
     const uIn = document.getElementById('username').value;
     const pIn = document.getElementById('password').value;
@@ -61,7 +62,7 @@ function login() {
 
 function logout() { location.reload(); }
 
-// --- BEWERBUNGEN ---
+// --- 5. BEWERBUNGEN (GÄSTE) ---
 function openRequestForm() {
     db.ref('accountRequests').once('value', (snap) => {
         const reqs = snap.val() || {};
@@ -98,14 +99,13 @@ function showStatusScreen() {
     });
 }
 
-// --- ADMIN: USER & RECHTE ---
+// --- 6. ADMIN: USER & APPS ---
 function createUser() {
     const n = document.getElementById('new-user').value;
     const p = document.getElementById('new-pass').value;
     if (n && p) {
         users.push({ name: n, pass: p, role: 'user' });
         syncToCloud();
-        renderUsers();
     }
 }
 
@@ -118,7 +118,7 @@ function renderUsers() {
                 <button onclick="changeRole('${u.name}', 'user')">User</button>
                 <button onclick="changeRole('${u.name}', 'moderator')">Mod</button>
                 <button onclick="changeRole('${u.name}', 'admin')">Admin</button>
-                <button onclick="deleteUser('${u.name}')" style="color:red;">KICK</button>
+                <button onclick="deleteUser('${u.name}')" style="color:red; width:auto;">KICK</button>
             </div>
         </div>`).join('');
 }
@@ -130,17 +130,15 @@ function toggleRoleMenu(n) {
 
 function changeRole(n, r) {
     const i = users.findIndex(u => u.name === n);
-    if(i !== -1 && n !== 'admin') { users[i].role = r; syncToCloud(); renderUsers(); }
+    if(i !== -1 && n !== 'admin') { users[i].role = r; syncToCloud(); }
 }
 
 function deleteUser(n) {
     if(n==='admin') return;
     users = users.filter(u => u.name !== n);
     syncToCloud();
-    renderUsers();
 }
 
-// --- ADMIN: BEWERBUNGEN BEARBEITEN ---
 function renderAccountApps(reqs) {
     const list = document.getElementById('account-request-list');
     if(!list || !reqs) return;
@@ -150,8 +148,8 @@ function renderAccountApps(reqs) {
         return `<div style="border:1px solid blue; padding:5px; margin-bottom:5px;">
             ${r.name}: ${r.reason}<br>
             <input id="u-${id}" placeholder="User" style="width:40%"> <input id="p-${id}" placeholder="Pass" style="width:40%">
-            <button onclick="processApp('${id}', 'accepted')">OK</button>
-            <button onclick="processApp('${id}', 'rejected')">X</button>
+            <button onclick="processApp('${id}', 'accepted')" style="width:auto;">OK</button>
+            <button onclick="processApp('${id}', 'rejected')" style="width:auto; background:red;">X</button>
         </div>`;
     }).join('');
 }
@@ -166,7 +164,7 @@ function processApp(id, stat) {
     } else { db.ref('accountRequests/'+id).update({ status: 'rejected' }); }
 }
 
-// --- LINKS & ORDNER ---
+// --- 7. LINKS & ORDNER ---
 function addLink() {
     const n = document.getElementById('link-name').value;
     const u = document.getElementById('link-url').value;
@@ -180,14 +178,31 @@ function addLink() {
 function renderLinks() {
     const f = document.getElementById('current-folder').value;
     const list = document.getElementById('link-list');
-    document.getElementById('link-form').style.display = f ? 'block' : 'none';
-    if(!f) { list.innerHTML = "Wähle Ordner."; return; }
+    const form = document.getElementById('link-form');
+    const delBtn = document.getElementById('admin-folder-control');
+    
+    if (form) form.style.display = f ? 'block' : 'none';
+    if (delBtn) delBtn.style.display = (f && f !== "Allgemein" && currentUser.role === 'admin') ? 'block' : 'none';
+
+    if(!f) { list.innerHTML = "Wähle Verzeichnis."; return; }
+    
     const filtered = links.filter(l => l.folder === f);
-    list.innerHTML = filtered.map(l => `<li><a href="${l.url}" target="_blank">${l.name}</a> [${l.author}]</li>`).join('');
+    list.innerHTML = filtered.length === 0 ? "<li>Ordner ist leer.</li>" : filtered.map(l => `
+        <li>
+            <a href="${l.url}" target="_blank">${l.name}</a> [${l.author}]
+            ${currentUser.role === 'admin' ? `<button onclick="deleteLinkByIdx(${links.indexOf(l)})" style="width:auto; padding:2px 5px; margin-left:10px; background:red; color:white;">X</button>` : ''}
+        </li>
+    `).join('');
+}
+
+function deleteLinkByIdx(idx) {
+    links.splice(idx, 1);
+    syncToCloud();
 }
 
 function updateFolderDropdown() {
     const s = document.getElementById('current-folder');
+    if (!s) return;
     const v = s.value;
     s.innerHTML = '<option value="">-- Wählen --</option>' + folders.map(f => `<option value="${f}" ${f===v?'selected':''}>${f}</option>`).join('');
 }
@@ -199,12 +214,22 @@ function sendFolderRequest() {
 
 function renderRequests() {
     const list = document.getElementById('request-list');
-    list.innerHTML = folderRequests.map((r, i) => `<div>${r.name} <button onclick="approveFolder(${i})">OK</button></div>`).join('');
+    list.innerHTML = folderRequests.map((r, i) => `
+        <div style="margin-bottom:5px;">
+            ${r.name} (von ${r.user}) 
+            <button onclick="approveFolder(${i})" style="width:auto;">OK</button> 
+            <button onclick="rejectFolder(${i})" style="width:auto; background:red;">X</button>
+        </div>`).join('');
 }
 
 function approveFolder(i) {
     const r = folderRequests[i];
     if(!folders.includes(r.name)) folders.push(r.name);
+    folderRequests.splice(i, 1);
+    syncToCloud();
+}
+
+function rejectFolder(i) {
     folderRequests.splice(i, 1);
     syncToCloud();
 }
@@ -215,9 +240,25 @@ function deleteFolder() {
         folders = folders.filter(fol => fol !== f);
         links = links.filter(l => l.folder !== f);
         syncToCloud();
+        document.getElementById('current-folder').value = "";
     }
 }
 
+// --- 8. JUGENDSCHUTZ (AUTO-SCAN) ---
+function startAutoScan() {
+    let deleted = 0;
+    const initialCount = links.length;
+    links = links.filter(link => {
+        const content = (link.name + link.url).toLowerCase();
+        const isForbidden = forbiddenKeywords.some(kw => content.includes(kw));
+        if (isForbidden) { deleted++; return false; }
+        return true;
+    });
+    if (deleted > 0) syncToCloud();
+    showModal(`SCAN BEENDET: ${deleted} LINKS ENTFERNT.`);
+}
+
+// --- 9. MODAL & HELPER ---
 function closeTooManyRequests() {
     document.getElementById('too-many-requests').style.display = 'none';
     document.getElementById('request-section').style.display = 'none';
@@ -227,7 +268,7 @@ function closeTooManyRequests() {
 function showModal(t) {
     document.getElementById('modal-text').innerText = t;
     document.getElementById('modal-overlay').style.display = 'flex';
-    document.getElementById('modal-buttons').innerHTML = '<button onclick="document.getElementById(\'modal-overlay\').style.display=\'none\'">OK</button>';
+    document.getElementById('modal-buttons').innerHTML = '<button onclick="document.getElementById(\'modal-overlay\').style.display=\'none\'" style="width:auto; padding:5px 20px;">OK</button>';
 }
 
 window.onload = () => { if(myRequestId) showStatusScreen(); };
