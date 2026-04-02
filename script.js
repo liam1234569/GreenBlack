@@ -291,3 +291,127 @@ function showModal(text, callback = null, showCancel = false) {
         btnContainer.appendChild(cBtn);
     }
 }
+let myRequestId = localStorage.getItem('pendingRequestId') || null;
+
+// Beim Start prüfen, ob der Gast noch auf eine Antwort wartet
+window.onload = () => {
+    if (myRequestId) {
+        showStatusScreen();
+    }
+};
+
+function openRequestForm() {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('request-section').style.display = 'block';
+}
+
+function closeRequestForm() {
+    document.getElementById('request-section').style.display = 'none';
+    document.getElementById('login-section').style.display = 'block';
+}
+
+function submitAccountRequest() {
+    const name = document.getElementById('ans-name').value;
+    const reason = document.getElementById('ans-reason').value;
+
+    if (name && reason) {
+        const newReqRef = db.ref('accountRequests').push();
+        myRequestId = newReqRef.key;
+        localStorage.setItem('pendingRequestId', myRequestId);
+
+        newReqRef.set({
+            name: name,
+            reason: reason,
+            status: 'pending',
+            timestamp: Date.now()
+        });
+        showStatusScreen();
+    }
+}
+
+function showStatusScreen() {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('request-section').style.display = 'none';
+    document.getElementById('status-section').style.display = 'block';
+
+    // Live-Update für diesen speziellen Antrag aktivieren
+    db.ref('accountRequests/' + myRequestId).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const msgBox = document.getElementById('status-message');
+        if (data.status === 'pending') {
+            msgBox.innerHTML = `<span style="color:yellow;">ANTRAG IN BEARBEITUNG...</span><br>Bitte dieses Fenster nicht schließen.`;
+        } else if (data.status === 'rejected') {
+            msgBox.innerHTML = `<span style="color:red;">ZUGRIFF ABGELEHNT.</span><br>Der Admin hat deine Anfrage nicht akzeptiert.`;
+        } else if (data.status === 'accepted') {
+            msgBox.innerHTML = `
+                <span style="color:#0f0; font-size:1.5em;">ZUGRIFF GEWÄHRT!</span><br><br>
+                DEIN LOGIN:<br>
+                <strong>USER: ${data.generatedUser}</strong><br>
+                <strong>PASS: ${data.generatedPass}</strong><br><br>
+                Notiere dir diese Daten und logge dich ein.
+            `;
+            // Optional: Button zum Login einblenden
+        }
+    });
+}
+
+function cancelWaiting() {
+    localStorage.removeItem('pendingRequestId');
+    location.reload();
+}
+// Listener für Bewerbungen (nur für Admin relevant)
+db.ref('accountRequests').on('value', (snapshot) => {
+    const requests = snapshot.val();
+    const list = document.getElementById('account-request-list');
+    if (!list || !currentUser || currentUser.role !== 'admin') return;
+
+    if (!requests) {
+        list.innerHTML = "<p>Keine neuen Bewerbungen.</p>";
+        return;
+    }
+
+    list.innerHTML = Object.keys(requests).map(id => {
+        const r = requests[id];
+        if (r.status !== 'pending') return ''; // Nur offene zeigen
+
+        return `
+            <div style="border:1px solid #00f; padding:10px; margin-bottom:10px;">
+                <strong>${r.name}</strong> will beitreten.<br>
+                <small>Grund: ${r.reason}</small><br><br>
+                <input type="text" id="user-${id}" placeholder="Benutzername vergeben" style="width:45%;">
+                <input type="text" id="pass-${id}" placeholder="Passwort vergeben" style="width:45%;"><br>
+                <button onclick="handleRequest('${id}', 'accepted')" style="background:green;">[ ANNEHMEN ]</button>
+                <button onclick="handleRequest('${id}', 'rejected')" style="background:red;">[ ABLEHNEN ]</button>
+            </div>
+        `;
+    }).join('');
+});
+
+function handleRequest(id, action) {
+    if (action === 'accepted') {
+        const u = document.getElementById(`user-${id}`).value;
+        const p = document.getElementById(`pass-${id}`).value;
+
+        if (!u || !p) {
+            showModal("Bitte User und Pass für den Gast eingeben!");
+            return;
+        }
+
+        // 1. In die User-Datenbank einfügen
+        users.push({ name: u, pass: p, role: 'user' });
+        
+        // 2. Den Antrag aktualisieren
+        db.ref('accountRequests/' + id).update({
+            status: 'accepted',
+            generatedUser: u,
+            generatedPass: p
+        });
+        
+        syncToCloud();
+        showModal("User wurde freigeschaltet!");
+    } else {
+        db.ref('accountRequests/' + id).update({ status: 'rejected' });
+    }
+}
