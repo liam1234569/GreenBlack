@@ -1,4 +1,4 @@
-// --- 1. FIREBASE INITIALISIERUNG ---
+// --- 1. FIREBASE INITIALISIERUNG --- 
 const firebaseConfig = {
   apiKey: "AIzaSyAZEMNBokUfK42NHX6otedfSdVA43zK8PI",
   authDomain: "terminal-db-45473.firebaseapp.com",
