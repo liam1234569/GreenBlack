@@ -3,98 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL CORE v4.0 - NEURAL LINK</title>
+    <title>Terminal Database v3.0 - Cloud Edition</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* CRT & Scanline Effekt */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 9999;
-            pointer-events: none;
-            background-size: 100% 2px, 3px 100%;
-        }
-        .lockdown-active { border: 5px solid red !important; animation: blinker 1s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0.5; } }
-        .log-entry { font-size: 0.8em; border-bottom: 1px solid #111; padding: 2px; }
-        .boot-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: black; color: #0f0; }
-    </style>
 </head>
 <body>
 
-    <div id="boot-screen" class="boot-screen">
-        <div id="boot-text"></div>
-    </div>
-
-    <div id="terminal-container" style="display:none;">
+    <div id="terminal-container">
         
         <div id="login-section">
-            <h2 id="login-header">> SYSTEM LOGIN</h2>
-            <input type="text" id="username" placeholder="[User]">
-            <input type="password" id="password" placeholder="[Pass]">
-            <button onclick="login()">[ CONNECT ]</button>
-            <button onclick="openRequestForm()" style="position: absolute; bottom: 10px; right: 10px; width: auto; font-size: 0.7em; background: #222;">[ REQUEST ACCESS ]</button>
+            <h2>> SYSTEM LOGIN</h2>
+            <input type="text" id="username" placeholder="[Benutzername]">
+            <input type="password" id="password" placeholder="[Passwort]">
+            <button onclick="login()">[ EXECUTE LOGIN ]</button>
+            
+            <button onclick="openRequestForm()" style="position: absolute; bottom: 10px; right: 10px; width: auto; font-size: 0.7em; background: #222; border-color: #555; padding: 5px 10px;">
+                [ ACCOUNT BEANTRAGEN ]
+            </button>
+        </div>
+
+        <div id="request-section" style="display:none;" class="terminal-block">
+            <h2>> ACCOUNT-ANTRAG</h2>
+            <p>Bitte fülle den Fragebogen für den Systemzugang aus:</p>
+            <input type="text" id="ans-name" placeholder="Dein Name / Alias">
+            <textarea id="ans-reason" placeholder="Warum benötigst du Zugriff?" style="width:100%; height:80px; background:black; color:#0f0; border:1px solid #0f0; font-family:monospace; padding:10px; margin-bottom:10px; resize: none;"></textarea>
+            <button onclick="submitAccountRequest()" style="background:#0f0; color:black;">[ ANTRAG ABSCHICKEN ]</button>
+            <button onclick="closeTooManyRequests()" class="delete-btn">[ ABBRECHEN ]</button>
+        </div>
+
+        <div id="too-many-requests" style="display:none;" class="terminal-block">
+            <div style="text-align: center; padding: 40px 10px;">
+                <h2 style="color: #0f0; font-size: 1.8em; text-shadow: 0 0 10px #0f0; margin-bottom: 20px;">
+                    Aktuell zu viele Anfragen
+                </h2>
+                <button onclick="closeTooManyRequests()" style="background: white; color: red; border: none; padding: 10px 30px; font-weight: bold; cursor: pointer; width: auto;">
+                    Zurück
+                </button>
+            </div>
+        </div>
+
+        <div id="status-section" style="display:none;" class="terminal-block">
+            <h2>> STATUS-ZENTRALE</h2>
+            <div id="status-message" style="border: 1px dashed #0f0; padding: 20px; text-align: center; background: rgba(0,255,0,0.02); min-height: 100px;">
+                Initialisiere Verbindung...
+            </div>
+            <br>
+            <button onclick="localStorage.removeItem('pendingRequestId'); location.reload();" class="delete-btn">
+                [ VORGANG ABBRECHEN / ZURÜCK ]
+            </button>
         </div>
 
         <div id="main-section" style="display:none;">
-            <h2 id="welcome-msg"></h2>
-
-            <div class="terminal-block">
-                <input type="text" id="search-input" placeholder="> SEARCH DATABASE..." oninput="renderLinks()" style="margin-bottom: 0;">
-            </div>
+            <h2 id="welcome-msg">> SYSTEM ONLINE</h2>
             
             <div class="terminal-block">
+                <h3>> VERZEICHNIS-PFAD</h3>
                 <div style="display: flex; gap: 10px;">
                     <select id="current-folder" onchange="renderLinks()" style="flex-grow: 1;"></select>
-                    <button id="admin-folder-control" onclick="deleteFolder()" class="delete-btn" style="display:none; width: auto; margin: 0;">[ DEL ]</button>
+                    <button id="admin-folder-control" onclick="deleteFolder()" class="delete-btn" style="display:none; width: auto; margin: 0;">
+                        [ LÖSCHEN ]
+                    </button>
                 </div>
             </div>
 
             <div id="link-form" class="terminal-block" style="display:none;">
-                <h3>> NEW ENTRY</h3>
+                <h3>> NEUER EINTRAG</h3>
                 <input type="text" id="link-name" placeholder="Name">
-                <input type="text" id="link-url" placeholder="URL">
-                <label style="font-size: 0.8em;"><input type="checkbox" id="link-private"> [ PRIVATE ENTRY ] (Idee 5)</label>
-                <button onclick="addLink()" style="margin-top:10px;">[ UPLOAD ]</button>
+                <input type="text" id="link-url" placeholder="URL (https://...)">
+                <button onclick="addLink()">[ DATENSATZ SPEICHERN ]</button>
             </div>
 
             <div class="terminal-block">
-                <h3>> DATABASE OUTPUT</h3>
+                <h3>> DATENBANK-AUSGABE</h3>
                 <ul id="link-list" style="list-style: none; padding: 0;"></ul>
             </div>
 
-            <button onclick="logout()" style="width: 100%; color: #555;">[ DISCONNECT ]</button>
-        </div>
-
-        <div id="admin-section" style="display:none; border-top: 2px solid red; margin-top: 20px;">
-            <h2 style="color:red;">> ROOT ACCESS</h2>
-            
-            <button id="lockdown-btn" onclick="toggleLockdown()" style="background: #300; color: white; border: 2px solid red; margin-bottom: 15px;">[ INITIATE LOCKDOWN ]</button>
-
-            <div class="terminal-block" style="height: 150px; overflow-y: scroll; background: #050505; border-color: #333;">
-                <h4 style="color: #555; margin: 0;">> SYSTEM LOGS</h4>
-                <div id="system-logs"></div>
+            <div class="terminal-block">
+                <h3>> VERZEICHNIS BEANTRAGEN</h3>
+                <input type="text" id="req-folder-name" placeholder="Ordnername">
+                <input type="text" id="req-folder-reason" placeholder="Zweck">
+                <button onclick="sendFolderRequest()">[ ANFRAGE SENDEN ]</button>
             </div>
 
-            <div id="account-request-list"></div>
-            <div id="user-list"></div>
+            <button onclick="logout()" style="width: 100%; margin-top: 20px; background: #222; color: #888;">[ VERBINDUNG TRENNEN ]</button>
+        </div>
+
+        <div id="admin-section" style="display:none; border-top: 3px double #f00; margin-top: 30px; padding-top: 10px;">
+            <h2 style="color:red;">> ADMIN ROOT ACCESS</h2>
             
-            <button onclick="startAutoScan()" style="background: #a00; color: white;">[ JUGENDSCHUTZ SCAN ]</button>
+            <div class="terminal-block" style="border-color: #00f;">
+                <h3 style="color: #00f;">> ACCOUNT-BEWERBUNGEN</h3>
+                <div id="account-request-list"></div>
+            </div>
+
+            <div class="terminal-block">
+                <h3>> USER-MANAGEMENT & RECHTE</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="new-user" placeholder="Name" style="margin:0;">
+                    <input type="text" id="new-pass" placeholder="Pass" style="margin:0;">
+                    <button onclick="createUser()" style="width: auto;">[ CREATE ]</button>
+                </div>
+                <div id="user-list"></div>
+            </div>
+
+            <div class="terminal-block">
+                <h3>> SYSTEM-TOOLS</h3>
+                <button onclick="startAutoScan()" style="background: #a00; color: white; margin-bottom: 15px;">
+                    [ JUGENDSCHUTZ-SCAN STARTEN ]
+                </button>
+                
+                <h4 style="margin-bottom: 5px;">> OFFENE ORDNER-ANFRAGEN</h4>
+                <div id="request-list"></div>
+            </div>
         </div>
     </div>
 
-    <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center;">
-        <div style="border:2px solid #0f0; background:#000; padding:30px; text-align:center;">
-            <p id="modal-text"></p>
+    <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
+        <div style="border:2px solid #0f0; background:#000; padding:30px; text-align:center; min-width: 300px; box-shadow: 0 0 20px #0f0;">
+            <p id="modal-text" style="margin-bottom:20px; font-size: 1.1em;"></p>
             <div id="modal-buttons"></div>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <script src="script.js"></script>
 </body>
 </html>
