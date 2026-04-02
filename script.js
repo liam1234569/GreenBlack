@@ -415,3 +415,31 @@ function handleRequest(id, action) {
         db.ref('accountRequests/' + id).update({ status: 'rejected' });
     }
 }
+// Konfiguration: Wie viele Anfragen sind maximal erlaubt?
+const MAX_REQUESTS = 1; 
+
+function openRequestForm() {
+    // 1. Zuerst in der Cloud prüfen, wie viele Anfragen es gibt
+    db.ref('accountRequests').once('value', (snapshot) => {
+        const allRequests = snapshot.val() || {};
+        
+        // Zähle nur die Anfragen, die noch den Status 'pending' haben
+        const pendingCount = Object.values(allRequests).filter(req => req.status === 'pending').length;
+
+        document.getElementById('login-section').style.display = 'none';
+
+        if (pendingCount >= MAX_REQUESTS) {
+            // SPERRE: Zu viele Anfragen
+            document.getElementById('too-many-requests').style.display = 'block';
+        } else {
+            // FREI: Formular anzeigen
+            document.getElementById('request-section').style.display = 'block';
+        }
+    });
+}
+
+// Funktion für den weißen "Zurück"-Button im Sperr-Bildschirm
+function closeTooManyRequests() {
+    document.getElementById('too-many-requests').style.display = 'none';
+    document.getElementById('login-section').style.display = 'block';
+}
