@@ -1,0 +1,157 @@
+/* Grundlegende Terminal-Optik */
+body {
+    background-color: #000; /* Tiefschwarz */
+    color: #0f0; /* Klassisches Matrix-Grün */
+    font-family: 'Courier New', Courier, monospace; /* Festbreitenschrift */
+    margin: 0;
+    display: flex;
+    justify-content: center; /* Horizontal zentrieren */
+    align-items: center;    /* Vertikal zentrieren */
+    min-height: 100vh;      /* Volle Bildschirmlänge nutzen */
+    text-shadow: 0 0 5px #0f0; /* Leichter Glüheffekt */
+}
+
+/* Der Terminal-Container */
+#terminal-container {
+    background-color: #050505; /* Fast schwarz für Kontrast */
+    border: 2px solid #0f0;    /* Grüner Rahmen */
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;         /* Maximale Breite */
+    min-height: 500px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); /* Äußerer Glühwein */
+    box-sizing: border-box;
+    overflow-y: auto;          /* Scrollbar, wenn Inhalt zu lang wird */
+}
+
+/* Titel und Überschriften */
+h2, h3 {
+    text-align: center;
+    text-transform: uppercase;
+    border-bottom: 1px solid #0f0;
+    padding-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+/* Eingabefelder (Inputs) stylen */
+input[type="text"], 
+input[type="password"] {
+    background: transparent;
+    border: 1px solid #0f0;
+    color: #0f0;
+    padding: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1em;
+    width: calc(100% - 22px); /* Volle Breite minus Padding/Border */
+    margin-bottom: 15px;
+    outline: none; /* Blauen Standard-Rahmen entfernen */
+}
+
+input::placeholder {
+    color: rgba(0, 255, 0, 0.5); /* Dunkleres Grün für Platzhalter */
+}
+
+/* Buttons stylen */
+button {
+    background-color: #0f0;
+    color: #000; /* Schwarze Schrift auf grünem Grund */
+    border: none;
+    padding: 10px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+    box-shadow: 0 0 10px #0f0;
+}
+
+/* Links (In der Liste) */
+#link-list {
+    list-style: none;
+    padding: 0;
+}
+
+#link-list li {
+    border-bottom: 1px dashed rgba(0, 255, 0, 0.3);
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#link-list a {
+    color: #0f0;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+#link-list a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px #0f0;
+}
+
+/* Die graue Info neben den Links (Wie gewünscht) */
+.author {
+    color: #888; /* Dunkelgrau */
+    font-size: 0.85em;
+    text-shadow: none; /* Kein Glühen für den Namen */
+}
+
+/* Löschen-Buttons (rot, passend zum Terminal) */
+.delete-btn {
+    background-color: transparent;
+    border: 1px solid #f00;
+    color: #f00;
+    width: auto;
+    padding: 5px 10px;
+    font-size: 0.8em;
+    text-shadow: 0 0 5px #f00;
+    margin: 0 0 0 10px;
+}
+
+.delete-btn:hover {
+    background-color: #f00;
+    color: #fff;
+}
+
+/* Login-Bereich zentrieren */
+#login-section {
+    max-width: 400px;
+    margin: 50px auto;
+}
+
+/* Admin-Panel Trennung */
+#admin-section {
+    margin-top: 30px;
+    border-top: 2px solid #0f0;
+    padding-top: 20px;
+}
+#modal-box p {
+    font-size: 1.1em;
+    color: #0f0;
+}
+
+.modal-btn {
+    background: #0f0;
+    color: #000;
+    border: none;
+    padding: 8px 15px;
+    margin: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.modal-btn.cancel {
+    background: #444;
+    color: #eee;
+}
