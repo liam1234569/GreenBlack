@@ -15,7 +15,28 @@
             <input type="text" id="username" placeholder="[Benutzername]">
             <input type="password" id="password" placeholder="[Passwort]">
             <button onclick="login()">[ EXECUTE LOGIN ]</button>
+            <button onclick="openRequestForm()" style="position: absolute; bottom: 10px; right: 10px; width: auto; font-size: 0.7em; background: #222; border-color: #555;">
+    [ ACCOUNT BEANTRAGEN ]
+</button>
         </div>
+
+        <div id="request-section" style="display:none;" class="terminal-block">
+    <h2>> ACCOUNT-ANTRAG</h2>
+    <p>Bitte fülle den Fragebogen für den Systemzugang aus:</p>
+    <input type="text" id="ans-name" placeholder="Dein Name / Alias">
+    <textarea id="ans-reason" placeholder="Warum benötigst du Zugriff?" style="width:100%; height:80px; background:black; color:#0f0; border:1px solid #0f0; font-family:monospace; padding:10px; margin-bottom:10px;"></textarea>
+    <button onclick="submitAccountRequest()">[ ANTRAG ABSCHICKEN ]</button>
+    <button onclick="closeRequestForm()" class="delete-btn">[ ABBRECHEN ]</button>
+</div>
+
+<div id="status-section" style="display:none;" class="terminal-block">
+    <h2>> SYSTEM-STATUS: PRÜFUNG</h2>
+    <div id="status-message" style="border: 1px dashed #0f0; padding: 20px; text-align: center;">
+        Warte auf Rückmeldung der Administration...
+    </div>
+    <br>
+    <button onclick="cancelWaiting()" class="delete-btn">[ VORGANG ABBRECHEN ]</button>
+</div>
 
         <div id="main-section" style="display:none;">
             <h2 id="welcome-msg"></h2>
@@ -64,6 +85,10 @@
                 <h3 style="color: #f00;">> OFFENE VERZEICHNIS-ANFRAGEN</h3>
                 <div id="request-list"></div>
             </div>
+            <div class="terminal-block" style="border-color: #00f;">
+    <h3 style="color: #00f;">> ACCOUNT-BEWERBUNGEN</h3>
+    <div id="account-request-list"></div>
+</div>
 
             <div class="terminal-block" style="border: 1px solid #0f0; padding: 10px; margin-bottom: 20px;">
                 <h3>> CONTENT SAFETY CHECK</h3>
