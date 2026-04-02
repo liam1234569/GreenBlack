@@ -29,6 +29,17 @@
     <button onclick="closeRequestForm()" class="delete-btn">[ ABBRECHEN ]</button>
 </div>
 
+<div id="too-many-requests" style="display:none;" class="terminal-block">
+    <div style="text-align: center; padding: 40px 10px;">
+        <h2 style="color: #0f0; font-size: 2em; text-shadow: 0 0 10px #0f0; margin-bottom: 30px;">
+            Aktuell zu viele Anfragen
+        </h2>
+        <button onclick="closeTooManyRequests()" 
+                style="background: white; color: red; border: none; padding: 10px 30px; font-weight: bold; border-radius: 5px; cursor: pointer;">
+            Zurück
+        </button>
+    </div>
+</div>
 <div id="status-section" style="display:none;" class="terminal-block">
     <h2>> SYSTEM-STATUS: PRÜFUNG</h2>
     <div id="status-message" style="border: 1px dashed #0f0; padding: 20px; text-align: center;">
