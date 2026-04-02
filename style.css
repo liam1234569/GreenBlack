@@ -156,31 +156,3 @@ button:hover {
     color: #eee;
 }
 
-.user-card {
-    border: 1px solid #222;
-    padding: 10px;
-    margin-bottom: 8px;
-    background: rgba(0, 255, 0, 0.02);
-    transition: 0.3s;
-}
-
-.user-card:hover {
-    border-color: #0f0;
-}
-
-.mini-btn {
-    background: black;
-    color: #0f0;
-    border: 1px solid #0f0;
-    padding: 3px 8px;
-    font-size: 0.8em;
-    cursor: pointer;
-    font-family: monospace;
-}
-
-.root-user {
-    border-color: #555;
-    background: transparent;
-    display: flex;
-    justify-content: space-between;
-}
